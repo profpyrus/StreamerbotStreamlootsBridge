@@ -1,0 +1,40 @@
+name: "Deploy Apex Tournament Manager"
+
+on:
+  push:
+    branches:
+      - "release"
+    tags:
+      - "V*"
+
+env:
+  PROJECT_PATH: StreamerbotStreamlootsBridge.sln
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+  
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "6.0.x"
+          
+      - name: Dotnet Restore
+        uses: dotnet restore
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.2.0
+
+      - name: Restore NuGet packages
+        run: nuget restore ${{ env.PROJECT_PATH }}
+  
+      - name: Build Solution
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --selfContained true --no-restore
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: test
+          path: bin\Release\

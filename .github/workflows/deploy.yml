@@ -22,15 +22,9 @@ jobs:
           
       - name: Dotnet Restore
         run: dotnet restore
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.2.0
-
-      - name: Restore NuGet packages
-        run: nuget restore ${{ env.PROJECT_PATH }}
   
       - name: Build Solution
-        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --selfContained true --no-restore
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
       - uses: actions/upload-artifact@v3
         with:

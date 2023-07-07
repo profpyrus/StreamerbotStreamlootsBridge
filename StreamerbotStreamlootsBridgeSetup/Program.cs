@@ -90,5 +90,7 @@ static async Task ActionSetupAsync()
 	Console.WriteLine("How many cards should be in a pack? (1, 2 or 3)");
 	request.cardAmount = Convert.ToInt32(Console.ReadLine());
 
+
+	Console.Write("Add a Core > C# > Execute C# Code subaction to the gifting action, edit the code and paste the following into a new line above the line saying 'return true;':");
 	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ packId: \\\"" + request.packId + "\\\", user: \\\"\" + args[\"userName\"].ToString() + \"\\\", cardAmount: " + request.cardAmount + ", packAmount: " + request.packAmount + " }\");");
 }

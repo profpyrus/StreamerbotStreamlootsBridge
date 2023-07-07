@@ -32,9 +32,9 @@ botclient.MessageReceived.Subscribe(async msg =>
 	if (obj != null && eventVal != null && eventVal.Value<string>("type") == "Custom")
 	{
 		JToken token = obj.Value<JToken>("data");
-		string? name = token.Value<string>("data");
-		Console.WriteLine("Gifting pack to " + name + "...");
-		string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + settings.packId + "\", \"cardAmount\": 3 }, \"quantity\": 1 } ], \"gifteeUsername\": \"" + name + "\", \"type\": \"FREE_GIFT\"}";
+		RequestStructure request = JsonConvert.DeserializeObject<RequestStructure>(token.Value<string>("data"));
+		Console.WriteLine("Gifting pack to " + request.user + "...");
+		string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + request.packId + "\", \"cardAmount\": " + request.cardAmount + " }, \"quantity\": " + request.packAmount + " } ], \"gifteeUsername\": \"" + request.user + "\", \"type\": \"FREE_GIFT\"}";
 		var data = new StringContent(slrequest, Encoding.UTF8, "application/json");
 		HttpResponseMessage res = await req.PostAsync("https://api.streamloots.com/loot-orders", data);
 		Console.WriteLine(res.IsSuccessStatusCode ? "Pack gifted succesfully!" : "Something went wrong...");

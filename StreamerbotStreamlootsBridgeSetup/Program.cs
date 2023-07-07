@@ -9,7 +9,7 @@ static async Task Start()
 {
 	Console.WriteLine("Welcome to the Streamer.bot Streamloots Bridge Setup. What do you want to do?");
 	Console.WriteLine("\t\"auth\": Setup your authorization token to connect to Streamloots.");
-	Console.WriteLine("\t\"pack\": Set the pack that will be gifted. (AUTHORIZATION SETUP NEEDED FIRST!)");
+	Console.WriteLine("\t\"action\": Create the string for a new auto-gift action (NEEDS AUTH SETUP)");
 	Console.WriteLine("\t\"exit\": Exit the program.");
 	Console.WriteLine("");
 	string? input = Console.ReadLine();
@@ -18,8 +18,8 @@ static async Task Start()
 			AuthSetup();
 			await Start();
 			break;
-		case "pack":
-			await PackSetupAsync();
+		case "action":
+			await ActionSetupAsync();
 			await Start();
 			break;
 		case "exit":
@@ -48,9 +48,11 @@ static void AuthSetup()
 	SettingsSaveLoader.SaveSettings(settings);
 }
 
-static async Task PackSetupAsync()
+static async Task ActionSetupAsync()
 {
 	Settings settings = SettingsSaveLoader.ReadSettings();
+	RequestStructure request = new RequestStructure();
+
 	HttpClient req = new HttpClient();
 	Uri sluri = new Uri("https://api.streamloots.com");
 	req.DefaultRequestHeaders.Add("Authorization", "Bearer " + settings.authToken);
@@ -79,8 +81,14 @@ static async Task PackSetupAsync()
 		Console.WriteLine("\nPlease enter the index of the pack you want to be gifted: ");
 		int ind = Convert.ToInt32(Console.ReadLine());
 
-		settings.packId = packsObj.data[ind]._id;
+		request.packId = packsObj.data[ind-1]._id;
 	}
 
-	SettingsSaveLoader.SaveSettings(settings);
+	Console.WriteLine("How many packs should be gifted?");
+	request.packAmount = Convert.ToInt32(Console.ReadLine());
+
+	Console.WriteLine("How many cards should be in a pack? (1, 2 or 3)");
+	request.cardAmount = Convert.ToInt32(Console.ReadLine());
+
+	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ packId: \\\"" + request.packId + "\\\", user: \\\"\" + args[\"userName\"].ToString() + \"\\\", cardAmount: " + request.cardAmount + ", packAmount: " + request.packAmount + " }\");");
 }

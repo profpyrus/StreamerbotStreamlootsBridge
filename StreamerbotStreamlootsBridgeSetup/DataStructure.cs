@@ -24,6 +24,14 @@ namespace StreamerbotStreamlootsBridge
 		public string packId { get; set; }
 	}
 
+	public class RequestStructure
+	{
+		public string packId { get; set; }
+		public string user { get; set; }
+		public int cardAmount { get; set; }
+		public int packAmount { get; set; }
+	}
+
 	public static class SettingsSaveLoader
 	{
 		public static Settings ReadSettings()

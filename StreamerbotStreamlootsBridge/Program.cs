@@ -31,7 +31,8 @@ botclient.MessageReceived.Subscribe(async msg =>
 
 	if (obj != null && eventVal != null && eventVal.Value<string>("type") == "Custom")
 	{
-		string? name = obj.Value<JToken>("data").Value<string>("data");
+		JToken token = obj.Value<JToken>("data");
+		string? name = token.Value<string>("data");
 		Console.WriteLine("Gifting pack to " + name + "...");
 		string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + settings.packId + "\", \"cardAmount\": 3 }, \"quantity\": 1 } ], \"gifteeUsername\": \"" + name + "\", \"type\": \"FREE_GIFT\"}";
 		var data = new StringContent(slrequest, Encoding.UTF8, "application/json");

@@ -2,8 +2,6 @@ name: "Deploy Apex Tournament Manager"
 
 on:
   push:
-    branches:
-      - "release"
     tags:
       - "V*"
 
@@ -23,7 +21,7 @@ jobs:
           dotnet-version: "6.0.x"
           
       - name: Dotnet Restore
-        uses: dotnet restore
+        run: dotnet restore
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.2.0
@@ -37,4 +35,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: test
-          path: bin\Release\
+          path: bin\Release\net6.0

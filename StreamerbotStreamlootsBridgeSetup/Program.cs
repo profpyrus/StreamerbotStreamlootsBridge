@@ -3,35 +3,35 @@ using Newtonsoft.Json;
 using StreamerbotStreamlootsBridge;
 using Websocket.Client;
 
-await Main();
+await Start();
 
-static async Task Main()
+static async Task Start()
 {
 	Console.WriteLine("Welcome to the Streamer.bot Streamloots Bridge Setup. What do you want to do?");
 	Console.WriteLine("\t\"auth\": Setup your authorization token to connect to Streamloots.");
 	Console.WriteLine("\t\"pack\": Set the pack that will be gifted. (AUTHORIZATION SETUP NEEDED FIRST!)");
 	Console.WriteLine("\t\"exit\": Exit the program.");
 	Console.WriteLine("");
-	string input = Console.ReadLine();
+	string? input = Console.ReadLine();
 	switch (input){
 		case "auth":
-			await AuthSetupAsync();
-			await Main();
+			AuthSetup();
+			await Start();
 			break;
 		case "pack":
 			await PackSetupAsync();
-			await Main();
+			await Start();
 			break;
 		case "exit":
 			break;
 		default:
 			Console.WriteLine("I didn't quite get that. Try again! (check spelling)");
-			await Main();
+			await Start();
 			break;
 	}
 }
 
-static async Task AuthSetupAsync()
+static void AuthSetup()
 {
 	Settings settings = SettingsSaveLoader.ReadSettings();
 
@@ -41,7 +41,9 @@ static async Task AuthSetupAsync()
 	Console.WriteLine("");
 	Console.WriteLine("Paste the result here:");
 
-	settings.authToken = Console.ReadLine();
+	string? token = Console.ReadLine();
+	if(token != null)
+		settings.authToken = token;
 
 	SettingsSaveLoader.SaveSettings(settings);
 }
@@ -54,7 +56,7 @@ static async Task PackSetupAsync()
 	req.DefaultRequestHeaders.Add("Authorization", "Bearer " + settings.authToken);
 
 	Console.WriteLine("What Channel do you want to gift packs from? Enter it's name:");
-	string name = Console.ReadLine();
+	string? name = Console.ReadLine();
 
 	var exitEvent = new ManualResetEvent(false);
 	Uri uri = new Uri("ws://127.0.0.1:8080/");
@@ -63,19 +65,22 @@ static async Task PackSetupAsync()
 
 	HttpResponseMessage reply = await req.GetAsync(new Uri("https://api.streamloots.com/sets?slug=" + name));
 	string replyString = await reply.Content.ReadAsStringAsync();
-	StreamlootsReply packsObj = JsonConvert.DeserializeObject<StreamlootsReply>(replyString);
+	StreamlootsReply? packsObj = JsonConvert.DeserializeObject<StreamlootsReply>(replyString);
 
 	int cnt = 0;
-	foreach (CardPack pack in packsObj.data)
+	if(packsObj != null)
 	{
-		cnt++;
-		Console.WriteLine(cnt + ": " + pack.name);
+		foreach (CardPack pack in packsObj.data)
+		{
+			cnt++;
+			Console.WriteLine(cnt + ": " + pack.name);
+		}
+
+		Console.WriteLine("\nPlease enter the index of the pack you want to be gifted: ");
+		int ind = Convert.ToInt32(Console.ReadLine());
+
+		settings.packId = packsObj.data[ind]._id;
 	}
-
-	Console.WriteLine("\nPlease enter the index of the pack you want to be gifted: ");
-	int ind = Convert.ToInt32(Console.ReadLine());
-
-	settings.packId = packsObj.data[ind]._id;
 
 	SettingsSaveLoader.SaveSettings(settings);
 }

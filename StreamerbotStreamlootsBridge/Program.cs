@@ -26,12 +26,12 @@ botclient.ReconnectionHappened.Subscribe(info =>
 
 botclient.MessageReceived.Subscribe(async msg =>
 {
-	JObject obj = (JObject)JsonConvert.DeserializeObject(msg.Text);
+	JObject? obj = (JObject?)JsonConvert.DeserializeObject(msg.Text);
 	var eventVal = obj.Value<JToken>("event");
 
-	if (eventVal != null && eventVal.Value<string>("type") == "Custom")
+	if (obj != null && eventVal != null && eventVal.Value<string>("type") == "Custom")
 	{
-		string name = obj.Value<JToken>("data").Value<string>("data");
+		string? name = obj.Value<JToken>("data").Value<string>("data");
 		Console.WriteLine("Gifting pack to " + name + "...");
 		string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + settings.packId + "\", \"cardAmount\": 3 }, \"quantity\": 1 } ], \"gifteeUsername\": \"" + name + "\", \"type\": \"FREE_GIFT\"}";
 		var data = new StringContent(slrequest, Encoding.UTF8, "application/json");

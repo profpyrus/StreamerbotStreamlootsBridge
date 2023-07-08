@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_PATH: StreamerbotStreamlootsBridge.sln
-  BUILD_PATH: bin\Release\net6.0\
+  BUILD_PATH: bin\Release\net6.0\publish\
 
 jobs:
   deploy:
@@ -24,8 +24,8 @@ jobs:
       - name: Dotnet Restore
         run: dotnet restore
   
-      - name: Build Solution
-        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+      - name: Publish Solution
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-restore --output ${{ env.BUILD_PATH }} --sc true
           
       - name: Remove files 1/2
         uses: JesseTG/rm@v1.0.3
@@ -35,7 +35,7 @@ jobs:
       - name: Remove files 2/2
         uses: JesseTG/rm@v1.0.3
         with:
-          path: ${{ env.BUILD_PATH }}StreamerbotStreamloostBridgeSetup.pdb
+          path: ${{ env.BUILD_PATH }}StreamerbotStreamlootsBridgeSetup.pdb
 
       - uses: actions/upload-artifact@v3
         with:

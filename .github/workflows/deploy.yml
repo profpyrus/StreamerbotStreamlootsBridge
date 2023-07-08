@@ -22,7 +22,7 @@ jobs:
           dotnet-version: "6.0.x"
   
       - name: Publish Solution
-        run: dotnet publish ${{ env.PROJECT_PATH }} -r windows-x64 -p:PublishSingleFile=true --configuration Release --output ${{ env.BUILD_PATH }} --sc true
+        run: dotnet publish ${{ env.PROJECT_PATH }} -p:PublishSingleFile=true --configuration Release --output ${{ env.BUILD_PATH }} --sc true
           
       - name: Remove files 1/2
         uses: JesseTG/rm@v1.0.3

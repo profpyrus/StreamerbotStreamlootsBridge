@@ -9,7 +9,8 @@ static async Task Start()
 {
 	Console.WriteLine("Welcome to the Streamer.bot Streamloots Bridge Setup. What do you want to do?");
 	Console.WriteLine("\t\"auth\": Setup your authorization token to connect to Streamloots.");
-	Console.WriteLine("\t\"action\": Create the string for a new auto-gift action (NEEDS AUTH SETUP)");
+	Console.WriteLine("\t\"actions\": Create the string for the auto-claim and auto-gift actions (NEEDS AUTH SETUP)");
+	Console.WriteLine("\t\"assign\": Create the string for a command to let people save their streamloots name to auto-claim packs properly");
 	Console.WriteLine("\t\"exit\": Exit the program.");
 	Console.WriteLine("");
 	string? input = Console.ReadLine();
@@ -18,8 +19,12 @@ static async Task Start()
 			AuthSetup();
 			await Start();
 			break;
-		case "action":
+		case "actions":
 			await ActionSetupAsync();
+			await Start();
+			break;
+		case "assign":
+			await AssignActionSetupAsync();
 			await Start();
 			break;
 		case "exit":
@@ -51,7 +56,6 @@ static void AuthSetup()
 static async Task ActionSetupAsync()
 {
 	Settings settings = SettingsSaveLoader.ReadSettings();
-	RequestStructure request = new RequestStructure();
 
 	HttpClient req = new HttpClient();
 	Uri sluri = new Uri("https://api.streamloots.com");
@@ -60,16 +64,12 @@ static async Task ActionSetupAsync()
 	Console.WriteLine("What Channel do you want to gift packs from? Enter it's name:");
 	string? name = Console.ReadLine();
 
-	var exitEvent = new ManualResetEvent(false);
-	Uri uri = new Uri("ws://127.0.0.1:8080/");
-
-	WebsocketClient botclient = new WebsocketClient(uri);
-
 	HttpResponseMessage reply = await req.GetAsync(new Uri("https://api.streamloots.com/sets?slug=" + name));
 	string replyString = await reply.Content.ReadAsStringAsync();
 	StreamlootsReply? packsObj = JsonConvert.DeserializeObject<StreamlootsReply>(replyString);
 
 	int cnt = 0;
+	string packId = "";
 	if(packsObj != null)
 	{
 		foreach (CardPack pack in packsObj.data)
@@ -81,16 +81,27 @@ static async Task ActionSetupAsync()
 		Console.WriteLine("\nPlease enter the index of the pack you want to be gifted: ");
 		int ind = Convert.ToInt32(Console.ReadLine());
 
-		request.packId = packsObj.data[ind-1]._id;
+		packId = packsObj.data[ind-1]._id;
 	}
 
 	Console.WriteLine("How many packs should be gifted?");
-	request.packAmount = Convert.ToInt32(Console.ReadLine());
+	int packAmount = Convert.ToInt32(Console.ReadLine());
 
 	Console.WriteLine("How many cards should be in a pack? (1, 2 or 3)");
-	request.cardAmount = Convert.ToInt32(Console.ReadLine());
+	int cardAmount = Convert.ToInt32(Console.ReadLine());
 
+	Console.WriteLine("Follow these instructions to add a claim action. This lets people get free streamloots packs by triggering the created action (i.e. Channel Point redemption)");
+	Console.WriteLine("Add a Core > C# > Execute C# Code subaction to the claiming action, edit the code and paste the following into a new line above the line saying 'return true;':\n");
+	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ type: \\\"claim\\\", packId: \\\"" + packId + "\\\", user: \\\"\" + args[\"userName\"].ToString() + \"\\\", cardAmount: " + cardAmount + ", packAmount: " + packAmount + " }\");\n\n");
 
+	Console.WriteLine("Follow these instructions to add a gift action. This lets people give free streamloots packs to other players by triggering the created action via Channel Point redemption");
 	Console.WriteLine("Add a Core > C# > Execute C# Code subaction to the gifting action, edit the code and paste the following into a new line above the line saying 'return true;':\n");
-	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ packId: \\\"" + request.packId + "\\\", user: \\\"\" + args[\"userName\"].ToString() + \"\\\", cardAmount: " + request.cardAmount + ", packAmount: " + request.packAmount + " }\");\n\n");
+	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ type: \\\"gift\\\", packId: \\\"" + packId + "\\\", user: \\\"\" + args[\"rawInput\"].ToString() + \"\\\", cardAmount: " + cardAmount + ", packAmount: " + packAmount + " }\");\n\n");
+
+}
+
+static async Task AssignActionSetupAsync()
+{
+	Console.WriteLine("Add a Core > C# > Execute C# Code subaction to the gifting action, edit the code and paste the following into a new line above the line saying 'return true;':\n");
+	Console.WriteLine("CPH.WebsocketBroadcastString(\"{ type: \\\"assign\\\", twitchName: \\\"\" + args[\"userName\"].ToString() + \"\\\", streamlootsName: \\\"\" + args[\"rawInput\"].ToString() \"\\\"\"});\n\n");
 }

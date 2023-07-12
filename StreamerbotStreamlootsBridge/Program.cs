@@ -8,6 +8,8 @@ using System.Text;
 using StreamerbotStreamlootsBridge;
 
 Settings settings = SettingsSaveLoader.ReadSettings();
+if (settings.userNameLibrary == null)
+	settings.userNameLibrary = new Dictionary<string, string>();
 
 HttpClient req = new HttpClient();
 Uri sluri = new Uri("https://api.streamloots.com");
@@ -32,12 +34,27 @@ botclient.MessageReceived.Subscribe(async msg =>
 	if (obj != null && eventVal != null && eventVal.Value<string>("type") == "Custom")
 	{
 		JToken token = obj.Value<JToken>("data");
-		RequestStructure request = JsonConvert.DeserializeObject<RequestStructure>(token.Value<string>("data"));
-		Console.WriteLine("Gifting pack to " + request.user + "...");
-		string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + request.packId + "\", \"cardAmount\": " + request.cardAmount + " }, \"quantity\": " + request.packAmount + " } ], \"gifteeUsername\": \"" + request.user + "\", \"type\": \"FREE_GIFT\"}";
-		var data = new StringContent(slrequest, Encoding.UTF8, "application/json");
-		HttpResponseMessage res = await req.PostAsync("https://api.streamloots.com/loot-orders", data);
-		Console.WriteLine(res.IsSuccessStatusCode ? "Pack gifted succesfully!" : "Something went wrong...");
+		JObject request = JObject.Parse(token.Value<string>("data"));
+		switch ((string)request["type"])
+		{
+			case "claim":
+			case "gift":
+				string user = (string)request["user"];
+				if (settings.userNameLibrary.ContainsKey(user))
+					user = settings.userNameLibrary[user];
+				Console.WriteLine("Gifting pack to " + user + "...");
+				string slrequest = "{\"items\": [ { \"item\": { \"setId\": \"" + (string)request["packId"] + "\", \"cardAmount\": " + (int)request["cardAmount"] + " }, \"quantity\": " + (int)request["packAmount"] + " } ], \"gifteeUsername\": \"" + user + "\", \"type\": \"FREE_GIFT\"}";
+				var data = new StringContent(slrequest, Encoding.UTF8, "application/json");
+				HttpResponseMessage res = await req.PostAsync("https://api.streamloots.com/loot-orders", data);
+				Console.WriteLine(res.IsSuccessStatusCode ? "Pack gifted succesfully!" : "Something went wrong...");
+				break;
+			case "assign":
+				settings.userNameLibrary[(string)request["twitchName"]] = (string)request["streamlootsName"];
+				Console.WriteLine(String.Format("Twitch-user \"{0}\" assigned themself the streamloots-username \"{1}\".", (string)request["twitchName"], (string)request["streamlootsName"]));
+				break;
+			default:
+				break;
+		}
 	}
 });
 

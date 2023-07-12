@@ -22,6 +22,7 @@ namespace StreamerbotStreamlootsBridge
 	{
 		public string authToken { get; set; }
 		public string packId { get; set; }
+		public Dictionary<string, string> userNameLibrary { get; set; }
 	}
 
 	public class RequestStructure
@@ -38,7 +39,11 @@ namespace StreamerbotStreamlootsBridge
 		{
 			string settingsPath = Directory.GetCurrentDirectory() + "\\config.json";
 			if (!File.Exists(settingsPath))
-				SaveSettings(new Settings());
+			{
+				Settings settings = new Settings();
+				settings.userNameLibrary = new Dictionary<string, string>();
+				SaveSettings(settings);
+			}
 			return JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingsPath));
 		}
 

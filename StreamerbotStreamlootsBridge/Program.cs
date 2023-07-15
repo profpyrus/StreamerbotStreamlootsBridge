@@ -50,7 +50,9 @@ botclient.MessageReceived.Subscribe(async msg =>
 				break;
 			case "assign":
 				settings.userNameLibrary[(string)request["twitchName"]] = (string)request["streamlootsName"];
-				Console.WriteLine(String.Format("Twitch-user \"{0}\" assigned themself the streamloots-username \"{1}\".", (string)request["twitchName"], (string)request["streamlootsName"]));
+				Console.WriteLine(String.Format("Twitch-user \"{0}\" assigned to the streamloots-username \"{1}\".", (string)request["twitchName"], (string)request["streamlootsName"]));
+				SettingsSaveLoader.SaveSettings(settings);
+				settings = SettingsSaveLoader.ReadSettings();
 				break;
 			default:
 				break;
